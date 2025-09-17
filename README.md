@@ -12,9 +12,8 @@ Este es el método tradicional si no utilizas Docker.
 
 1.  **Clonar el repositorio:**
     ```bash
-    # Reemplaza 'tu_usuario' por el nombre de usuario o la organización propietaria del repositorio
     git clone https://github.com/osrodgon/P5_G1_Task.git
-    cd L1-L2-Elastic-Net
+    cd P5_G1_Task
     ```
 
 2.  **Crear y activar un entorno virtual:**
