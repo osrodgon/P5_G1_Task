@@ -13,7 +13,7 @@ Este es el método tradicional si no utilizas Docker.
 1.  **Clonar el repositorio:**
     ```bash
     # Reemplaza 'tu_usuario' por el nombre de usuario o la organización propietaria del repositorio
-    git clone https://github.com/tu_usuario/L1-L2-Elastic-Net.git
+    git clone https://github.com/tu_usuario/P5_G1_task.git
     cd L1-L2-Elastic-Net
     ```
 
