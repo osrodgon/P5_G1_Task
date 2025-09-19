@@ -261,3 +261,159 @@ Como punto final, incluimos una tabla comparativa de los 3 modelos mencionados e
 | Mejora frente a OLS    | Reduce varianza y sparsity | Reduce varianza | Balance entre varianza y interpretabilidad |
 
 **OLS:** Mínimos Cuadrados Ordinarios (Ordinary Least Squares)
+
+# Anexo
+
+Como  caso práctico de la aplicación de los modelos regresión explicados, vamos a usar un dataset que ya existe en `scikit-learn` y que es el de los precios de las casas en California y que esta compuesto de las siguientes variables:
+
+- **MedInc**. Ingreso medio en el grupo de censo.
+
+- **HouseAge**. Edad media de la vivienda.
+
+- **AveRooms**. Media del número de habitaciones en cada casa.
+
+- **AveBedrms**. Media del número de dormitorios en cada casa.
+
+- **Population**. Número de habitantes en el grupo de censo.
+
+- **AveOcup**. Número de personas en cada casa.
+
+- **Latitude**. Latitud (coordenadas GPS).
+
+- **Longituda**. Longitud (coordenadas GPS).
+
+- **MedHouseVal**. Valor medio de la casa.
+
+Con estos datos, queremos entrenar a un modelo para que nos de el precio de una casa (variable dependiente) con respecto a las otras variables (edad, habitaciones, poblacion...) que vamos a considerarlas independientes.
+
+## Análisis inicial de los datos e identificación de variables.
+
+Un análisis inicial nos muestra que el dataset esta limpio y no es necesario hacer nada con el mismo:
+
+```
+dataset Info:
+<class 'pandas.core.frame.DataFrame'>
+RangeIndex: 20640 entries, 0 to 20639
+Data columns (total 9 columns):
+ #   Column       Non-Null Count  Dtype  
+---  ------       --------------  -----  
+ 0   MedInc       20640 non-null  float64
+ 1   HouseAge     20640 non-null  float64
+ 2   AveRooms     20640 non-null  float64
+ 3   AveBedrms    20640 non-null  float64
+ 4   Population   20640 non-null  float64
+ 5   AveOccup     20640 non-null  float64
+ 6   Latitude     20640 non-null  float64
+ 7   Longitude    20640 non-null  float64
+ 8   MedHouseVal  20640 non-null  float64
+dtypes: float64(9)
+```
+
+Tal y como hemos comentado, nuestra variable dependiente va a ser el precio de la casa ( `MedHouseVal`)  y el resto de las variables van a ser independientes.
+
+## Preparación de los datos.
+
+En este paso hacemos lo siguiente:
+
+- Crear un dataset con las variables independientes.
+
+- Crear un dataset con las variables dependientes.
+
+- Con los dataset anteriores, creamos los datos de entrenamiento y de pruebas (20% para pruebas, el resto para entrenamiento).
+
+- Escalamos los datos de entrenamiento porque tenemos mas de una variable independiente (práctica común)
+
+## Entrenamiento del modelo Lasso
+
+Con los datos ya preparados, pasamos a entrenar el modelo Lasso. De acuerdo con la fórmula, este modelo nos pide un valor para $\lambda$ al cual le damos un valor arbitrario de `0.2` (usaremos este valor para todos los modelos). Una vez entrenado, el modelo nos da los siguientes coeficientes:
+
+```
+Lasso Model Coefficients:
+[ 0.59851956  0.         -0.         -0.         -0.         -0.
+ -0.         -0.        ]
+```
+
+Podemos apreciar que el modelo ha "decidido" ignorar todas las variables independientes excepto para la primera, que es el ingreso medio.
+
+## Entrenamiento del modelo Ridge.
+
+Al igual que con el modelo Lasso, le damos un valor a $\lambda$ de `0.2`. Una vez entrenado, el modelo nos da los siguientes coeficientes:
+
+```
+Ridge Model Coefficients:
+[ 0.85437179  0.1225618  -0.29437018  0.33920917 -0.00230261 -0.04082989
+ -0.8967765  -0.86968745]
+```
+
+Tal y como esperamos, este modelo no descarta ninguna variable independiente, pero si que les da algunas de ellas valores cercanos a 0.
+
+## Entrenamiento del modelo Elastic-Net
+
+Recordamos que este modelo es una combinacion de los dos anteriores. Ademas de $\lambda$, necesita un valor $\alpha$ que nos indica el peso que se le da a los modelos Lasso y Ridge. Para nuestro caso, le damos un valor de `0.5`, es decir, el mismo peso a Lasso y Ridge. Una vez entrenado, el modelo nos da los siguientes coeficientes:
+
+```
+Elastic-Net Model Coefficients:
+[ 0.64386711  0.08940862 -0.         -0.         -0.         -0.
+ -0.01498904 -0.        ]
+```
+
+Podemos ver la influencia de los modelos Lasso (variables independientes con valor 0) y Ridge (variables independientes con valores cercanos a 0).
+
+## Visualizacion de los modelos
+
+El gráfico siguiente nos da una imagen visual de los modelos. Podemos ver que se comportan de una forma parecida, aunque el modelo Ridge tiene una pendiente (coeficiente) mas pronunciada.
+
+<img src="./resources/models_comparison.png" title="" alt="" data-align="center">
+
+El cálculo del MSE (Error Cuadrático medio) nos da los siguientes valores:
+
+```
+Model Performance on the Test Set with arbitrary values for alpha y ratio:
+
+Lasso Regression MSE: 0.7429
+Ridge Regression MSE: 0.5559
+Elastic-Net Regression MSE: 0.6978
+```
+
+Con estos datos, podemos decir que el modelo que mejor se comporta es el Ridge, seguido del Elastic-Net y en ultimo lugar el Lasso.
+
+## Optimización de los modelos
+
+Usar valores arbitrarios para $\lambda$  y $\alpha$ (hiperparametros) no es la mejor solución, puesto que nada nos garantiza que los valores asignados sean los mejores para los modelos esten optimizados (es decir, que predigan valores los mas próximos posibles a los esperados). `scikit-learn` nos da unas herramientas que nos permiten optimizar los modelos a partir de un conjunto de valores para los hiperparametros de los modelos. La optimizacion de nuestros modelos nos da como resultado estos valores para los hiperparametros:
+
+```
+Parameter grids defined:
+Lasso: {'alpha': [0.01, 0.1, 1, 10, 100]}
+Ridge: {'alpha': [0.01, 0.1, 1, 10, 100]}
+Elastic-Net: {'alpha': [0.01, 0.1, 1, 10, 100], 'l1_ratio': [0.1, 0.5, 0.9]}
+
+Best hyperparameters for Lasso: {'alpha': 0.01}
+Best hyperparameters for Ridge: {'alpha': 0.01}
+Best hyperparameters for Elastic-Net: {'alpha': 0.01, 'l1_ratio': 0.1}
+```
+
+Observamos que $\lambda$ tiene el mismo valor para todos los modelos y que $\alpha$ le da mucho mas peso al modelo Ridge en Elastic-Net.
+
+Si comparamos los MSE con los obtenidos usando valores arbitrarios, vemos que en los modelos optimizados todos convergen al mismo valor:
+
+```
+Model Performance on the Test Set (Tuned Models):
+
+Lasso Regression (Tuned) MSE: 0.5483
+Ridge Regression (Tuned) MSE: 0.5559
+Elastic-Net Regression (Tuned) MSE: 0.5519
+
+Model Performance on the Test Set with arbitrary values for alpha y ratio:
+
+Lasso Regression MSE: 0.7429
+Ridge Regression MSE: 0.5559
+Elastic-Net Regression MSE: 0.6978
+```
+
+El siguiente gŕafico de barras nos muestra el incremento en porcentaje del rendimiento de los modelos cuando se usan con hiperparametros optimizados:
+
+<img src="./resources/models_improvement.png" title="" alt="" data-align="center">
+
+Por último la imagen visual de los modelos nos muestra que la optimización de los modelos para este caso hace que se comporten de forma muy similar.
+
+<img src="./resources/models_comparison_tuned.png" title="" alt="" data-align="center">
